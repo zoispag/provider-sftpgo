@@ -1,0 +1,14 @@
+provider-sftpgo
+Copyright 2026 Zois Pagoulatos
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It is generated with and derived from the following Apache-2.0 licensed projects:
+
+- crossplane/upjet-provider-template (https://github.com/crossplane/upjet-provider-template)
+  and crossplane/upjet (https://github.com/crossplane/upjet)
+  Copyright The Crossplane Authors
+
+- drakkan/terraform-provider-sftpgo (https://github.com/drakkan/terraform-provider-sftpgo),
+  which this provider links and runs in-process.
+  Copyright (C) 2023 Nicola Murino

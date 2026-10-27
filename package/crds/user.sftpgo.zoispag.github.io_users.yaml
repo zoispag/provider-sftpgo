@@ -1,0 +1,2128 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: users.user.sftpgo.zoispag.github.io
+spec:
+  group: user.sftpgo.zoispag.github.io
+  names:
+    categories:
+    - crossplane
+    - managed
+    - sftpgo
+    kind: User
+    listKind: UserList
+    plural: users
+    singular: user
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=='Synced')].status
+      name: SYNCED
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
+      type: string
+    - jsonPath: .metadata.annotations.crossplane\.io/external-name
+      name: EXTERNAL-NAME
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: User is the Schema for the Users API. <no value>
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: UserSpec defines the desired state of User
+            properties:
+              deletionPolicy:
+                default: Delete
+                description: |-
+                  DeletionPolicy specifies what will happen to the underlying external
+                  when this managed resource is deleted - either "Delete" or "Orphan" the
+                  external resource.
+                  This field is planned to be deprecated in favor of the ManagementPolicies
+                  field in a future release. Currently, both could be set independently and
+                  non-default values would be honored if the feature flag is enabled.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                enum:
+                - Orphan
+                - Delete
+                type: string
+              forProvider:
+                properties:
+                  additionalInfo:
+                    description: Free form text field.
+                    type: string
+                  description:
+                    description: Optional description.
+                    type: string
+                  downloadBandwidth:
+                    description: Maximum download bandwidth as KB/s. Not set means
+                      unlimited. This is the default if no per-source limit match.
+                    type: number
+                  downloadDataTransfer:
+                    description: Maximum data transfer allowed for downloads as MB.
+                      Not set means no limit.
+                    type: number
+                  email:
+                    description: User email address.
+                    type: string
+                  expirationDate:
+                    description: Account expiration date as unix timestamp in milliseconds.
+                      An expired account cannot login.
+                    type: number
+                  filesystem:
+                    properties:
+                      osconfig:
+                        properties:
+                          readBufferSize:
+                            description: Optional read buffer size, as MB, to use
+                              for downloads. Omit to disable buffering, that's fine
+                              in most use cases.
+                            type: number
+                          writeBufferSize:
+                            description: Optional write buffer size, as MB, to use
+                              for uploads. Omit to disable no buffering, that's fine
+                              in most use cases.
+                            type: number
+                        type: object
+                      provider:
+                        description: Provider. -1 = None (on users the filesystem
+                          comes from the primary group, on groups no filesystem override
+                          for the members; Available in the Enterprise edition), 0
+                          = local filesystem, 1 = S3 Compatible, 2 = Google Cloud,
+                          3 = Azure Blob, 4 = Local encrypted, 5 = SFTP, 6 = HTTP,
+                          7 = FTP
+                        type: number
+                      s3config:
+                        properties:
+                          accessKey:
+                            description: AWS Access Key ID for authentication. Leave
+                              blank when using IAM roles or instance profiles.
+                            type: string
+                          accessSecretSecretRef:
+                            description: Plain text access secret. Don't do this unless
+                              you are sure the values match (e.g because you imported
+                              an existing resource). Mutually exclusive with `access_secret_wo`.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          accessSecretWoSecretRef:
+                            description: Write-only variant of `access_secret`.11
+                              or later. Mutually exclusive with the non write-only
+                              attribute. Use the companion _wo_version attribute to
+                              trigger an update.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          accessSecretWoVersion:
+                            description: Trigger attribute for `access_secret_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          acl:
+                            description: The canned ACL to apply to uploaded objects.
+                              Not set means the bucket default.
+                            type: string
+                          bucket:
+                            description: S3 bucket name.
+                            type: string
+                          checksumAlgorithm:
+                            description: 'Checksum algorithm to compute and send with
+                              uploads (PutObject, multipart upload, CopyObject) for
+                              end-to-end integrity verification. Leave empty (default)
+                              for maximum compatibility with S3-compatible services.
+                              Supported values: "crc32", "crc32c", "crc64nvme", "sha1",
+                              "sha256". Available in the Enterprise edition.'
+                            type: string
+                          downloadConcurrency:
+                            description: How many parts are downloaded in parallel.
+                              Not set means the default (5). Ignored for partial downloads.
+                            type: number
+                          downloadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              download a single chunk. Not set means no timeout. Ignored
+                              for partial downloads.
+                            type: number
+                          downloadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              downloads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                          endpoint:
+                            description: The endpoint is generally required for S3
+                              compatible backends. For AWS S3, leave not set to use
+                              the default endpoint for the specified region.
+                            type: string
+                          forcePathStyle:
+                            description: If set path-style addressing is used, i.e.
+                              http://s3.amazonaws.com/BUCKET/KEY
+                            type: boolean
+                          keyPrefix:
+                            description: 'If specified then the SFTPGo user will be
+                              restricted to objects starting with the specified prefix.
+                              The prefix is normalized on save: a leading "/" is removed
+                              and a trailing "/" is added; a non-empty value that
+                              resolves to the storage root is rejected. Provide it
+                              already normalized (no leading "/", trailing "/") to
+                              avoid plan drift'
+                            type: string
+                          region:
+                            description: S3 region.
+                            type: string
+                          roleArn:
+                            description: Optional IAM Role ARN to assume.
+                            type: string
+                          sessionTokenSecretRef:
+                            description: Optional Session token that is a part of
+                              temporary security credentials provisioned by AWS STS.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          skipTlsVerify:
+                            description: If set the S3 client accepts any TLS certificate
+                              presented by the server and any host name in that certificate.
+                              In this mode, TLS is susceptible to man-in-the-middle
+                              attacks. This should be used only for testing.
+                            type: boolean
+                          sseCustomerKeySecretRef:
+                            description: Plain text Server-Side encryption key. Don't
+                              do this unless you are sure the values match (e.g because
+                              you imported an existing resource). Mutually exclusive
+                              with `sse_customer_key_wo`.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          sseCustomerKeyWoSecretRef:
+                            description: Write-only variant of `sse_customer_key`.11
+                              or later. Mutually exclusive with the non write-only
+                              attribute. Use the companion _wo_version attribute to
+                              trigger an update.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          sseCustomerKeyWoVersion:
+                            description: Trigger attribute for `sse_customer_key_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          storageClass:
+                            description: The storage class to use when storing objects.
+                              Leave not set for default.
+                            type: string
+                          uploadConcurrency:
+                            description: How many parts are uploaded in parallel.
+                              Not set means the default (5).
+                            type: number
+                          uploadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              upload a single chunk. Not set means no timeout.
+                            type: number
+                          uploadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              uploads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                        type: object
+                    type: object
+                  filters:
+                    properties:
+                      accessTime:
+                        items:
+                          properties:
+                            dayOfWeek:
+                              description: Day of week, 0 Sunday, 6 Saturday
+                              type: number
+                            from:
+                              description: Start time in HH:MM format
+                              type: string
+                            to:
+                              description: End time in HH:MM format
+                              type: string
+                          type: object
+                        type: array
+                      additionalEmails:
+                        description: Additional email addresses.
+                        items:
+                          type: string
+                        type: array
+                      allowApiKeyAuth:
+                        description: If set, API Key authentication is allowed.
+                        type: boolean
+                      allowedIp:
+                        description: Only connections from these IP/Mask are allowed.
+                          IP/Mask must be in CIDR notation as defined in RFC 4632
+                          and RFC 4291 for example "192.0.2.0/24" or "2001:db8::/32"
+                        items:
+                          type: string
+                        type: array
+                      allowedSharePaths:
+                        description: 'Virtual paths within which shares are allowed.
+                          If non-empty, share paths must be at or below one of these
+                          entries. Combined with denied_share_paths via longest-prefix
+                          match: the more specific entry wins, and if the same path
+                          appears in both lists the denied entry takes precedence.
+                          The string "/" acts as a wildcard. Available in the Enterprise
+                          edition.'
+                        items:
+                          type: string
+                        type: array
+                      bandwidthLimits:
+                        items:
+                          properties:
+                            downloadBandwidth:
+                              description: Maximum download bandwidth as KB/s.
+                              type: number
+                            sources:
+                              description: Source networks in CIDR notation as defined
+                                in RFC 4632 and RFC 4291 for example "192.0.2.0/24"
+                                or "2001:db8::/32". The limit applies if the defined
+                                networks contain the client IP.
+                              items:
+                                type: string
+                              type: array
+                            uploadBandwidth:
+                              description: Maximum upload bandwidth as KB/s.
+                              type: number
+                          type: object
+                        type: array
+                      checkPasswordDisabled:
+                        description: If set, check password hook will not be executed.
+                        type: boolean
+                      custom1:
+                        description: An extra placeholder value available for use
+                          in group configurations. It can be referenced as %custom1%.
+                          Available in the Enterprise edition.
+                        type: string
+                      customPlaceholders:
+                        description: List of extra placeholders available for use
+                          in group configurations. Each placeholder can be referenced
+                          as %custom1%, %custom2%, and so on. Available in the Enterprise
+                          edition.
+                        items:
+                          type: string
+                        type: array
+                      defaultSharesExpiration:
+                        description: Default expiration for newly created shares as
+                          number of days. Not set means no default expiration.
+                        type: number
+                      deniedIp:
+                        description: Connections from these IP/Mask are not allowed.
+                          Denied rules will be evaluated before allowed ones.
+                        items:
+                          type: string
+                        type: array
+                      deniedLoginMethods:
+                        description: 'Disabled login methods. Valid values: "publickey",
+                          "password", "password-over-SSH", "keyboard-interactive",
+                          "publickey+password", "publickey+keyboard-interactive",
+                          "password+publickey", "keyboard-interactive+publickey",
+                          "TLSCertificate", "TLSCertificate+password". The "password+publickey"
+                          and "keyboard-interactive+publickey" multi-step variants
+                          are available in the Enterprise edition only.'
+                        items:
+                          type: string
+                        type: array
+                      deniedProtocols:
+                        description: 'Disabled protocols. Valid values: SSH, FTP,
+                          DAV, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      deniedSharePaths:
+                        description: Virtual paths that cannot be shared. If a path
+                          is denied, shares for that path and any sub-path are rejected.
+                          Available in the Enterprise edition.
+                        items:
+                          type: string
+                        type: array
+                      deniedShareScopes:
+                        description: 'Share scopes that users are not allowed to use.
+                          Valid values: read, write, read_write. If all scopes are
+                          denied, sharing is completely disabled. Available in the
+                          Enterprise edition.'
+                        items:
+                          type: string
+                        type: array
+                      disableFsChecks:
+                        description: Disable checks for existence and automatic creation
+                          of home directory and virtual folders after user login.
+                        type: boolean
+                      enforceSecureAlgorithms:
+                        description: If enabled, only secure algorithms are allowed.
+                          This setting is currently enforced for SSH/SFTP. Available
+                          in the Enterprise edition.
+                        type: boolean
+                      externalAuthCacheTime:
+                        description: Defines the cache time, in seconds, for users
+                          authenticated using an external auth hook. Not set means
+                          no cache.
+                        type: number
+                      externalAuthDisabled:
+                        description: If set, external auth hook will not be executed.
+                        type: boolean
+                      filePatterns:
+                        items:
+                          properties:
+                            allowedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are allowed. Allowed file patterns are evaluated
+                                before the denied ones.
+                              items:
+                                type: string
+                              type: array
+                            deniedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are not allowed.
+                              items:
+                                type: string
+                              type: array
+                            denyPolicy:
+                              description: Set to 1 to hide denied files/directories
+                                in directory listing.
+                              type: number
+                            path:
+                              description: Virtual path, if no other specific filter
+                                is defined, the filter applies for sub directories
+                                too.
+                              type: string
+                          type: object
+                        type: array
+                      ftpSecurity:
+                        description: FTP security mode. Set to 1 to require TLS for
+                          both data and control connection.
+                        type: number
+                      isAnonymous:
+                        description: If enabled the user can login with any password
+                          or no password at all. Anonymous users are supported for
+                          FTP and WebDAV protocols and permissions will be automatically
+                          set to "list" and "download" (read only)
+                        type: boolean
+                      maxSharesExpiration:
+                        description: Maximum allowed expiration, as a number of days,
+                          when a user creates or updates a share. Not set means that
+                          non-expiring shares are allowed.
+                        type: number
+                      maxUploadFileSize:
+                        description: Max size allowed for a single upload. Unset means
+                          no limit.
+                        type: number
+                      passwordExpiration:
+                        description: The password expires after the defined number
+                          of days. Not set means no expiration
+                        type: number
+                      passwordPolicy:
+                        properties:
+                          digits:
+                            description: Minimum number of digit characters required.
+                            type: number
+                          length:
+                            description: Minimum password length.
+                            type: number
+                          lowers:
+                            description: Minimum number of lowercase characters required.
+                            type: number
+                          specials:
+                            description: Minimum number of special characters required.
+                            type: number
+                          uppers:
+                            description: Minimum number of uppercase characters required.
+                            type: number
+                        type: object
+                      passwordStrength:
+                        description: 'Minimum password entropy enforced when a password
+                          is set. Not set means no per-user value: the primary group''s
+                          password_strength is used, otherwise the system-level data_provider.password_validation
+                          default. A non-zero value overrides the system default (the
+                          override may be less strict than the system default). Values
+                          in the 50-70 range are suggested for common use cases.'
+                        type: number
+                      preLoginCacheTime:
+                        description: Defines the cache time, in seconds, used by the
+                          pre-login hook gate. When greater than 0 the pre-login hook
+                          is skipped if the user's last login is within the configured
+                          window. Not set means no cache. Available in the Enterprise
+                          edition.
+                        type: number
+                      preLoginDisabled:
+                        description: If set, external pre-login hook will not be executed.
+                        type: boolean
+                      requirePasswordChange:
+                        description: If set, user must change their password from
+                          WebClient/REST API at next login.
+                        type: boolean
+                      startDirectory:
+                        description: Alternate starting directory. If not set, the
+                          default is "/". This option is supported for SFTP/SCP, FTP
+                          and HTTP (WebClient/REST API) protocols. Relative paths
+                          will use this directory as base.
+                        type: string
+                      tlsCerts:
+                        description: TLS certificates for mutual authentication. If
+                          provided will be checked before TLS username.
+                        items:
+                          type: string
+                        type: array
+                      tlsUsername:
+                        description: TLS certificate attribute to use as username.
+                          For FTP clients it must match the name provided using the
+                          "USER" command. For WebDAV, if no username is provided,
+                          the CN will be used as username. For WebDAV clients it must
+                          match the implicit or provided username.
+                        type: string
+                      twoFactorProtocols:
+                        description: 'Defines protocols that require two factor authentication.
+                          Valid values: SSH, FTP, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      userType:
+                        description: 'Hint for authentication plugins. Valid values:
+                          LDAPUser, OSUser'
+                        type: string
+                      webClient:
+                        description: 'Web Client/user REST API restrictions. Valid
+                          values: write-disabled, password-change-disabled, password-reset-disabled,
+                          publickey-change-disabled, tls-cert-change-disabled, mfa-disabled,
+                          api-key-auth-change-disabled, info-change-disabled, shares-disabled,
+                          shares-without-password-disabled, shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled.
+                          Only available in the Enterprise version: shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled'
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  gid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system GID. Default
+                      not set.
+                    type: number
+                  groups:
+                    items:
+                      properties:
+                        name:
+                          description: Group name.
+                          type: string
+                        type:
+                          description: Group type. 1 = Primary, 2 = Secondary, 3 =
+                            Membership only.
+                          type: number
+                      type: object
+                    type: array
+                  homeDir:
+                    description: 'Absolute path. Optional if the server has `users_base_dir`
+                      configured: in that case SFTPGo auto-assigns `<users_base_dir>/<username>`.'
+                    type: string
+                  maxSessions:
+                    description: Maximum concurrent sessions. Not set means no limit.
+                    type: number
+                  passwordSecretRef:
+                    description: Plain text password or hash format supported by SFTPGo.
+                      Set to empty to remove the password. Mutually exclusive with
+                      `password_wo`.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  permissions:
+                    additionalProperties:
+                      type: string
+                    description: Comma separated, per-directory, permissions.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  publicKeys:
+                    description: List of public keys in OpenSSH format.
+                    items:
+                      type: string
+                    type: array
+                  quotaFiles:
+                    description: Maximum number of files allowed. Not set means no
+                      limit.
+                    type: number
+                  quotaSize:
+                    description: Maximum size allowed as bytes. Not set means no limit.
+                    type: number
+                  role:
+                    description: Role name. With resource isolation enabled on the
+                      role, the account reaches the groups and folders carrying it
+                      and its storage is measured against the allowlist of the role.
+                    type: string
+                  status:
+                    description: 1 enabled, 0 disabled (login is not allowed).
+                    type: number
+                  totalDataTransfer:
+                    description: Maximum total data transfer as MB. Not set means
+                      unlimited. You can set a total data transfer instead of the
+                      individual values for uploads and downloads.
+                    type: number
+                  uid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system UID. Default
+                      not set.
+                    type: number
+                  uploadBandwidth:
+                    description: Maximum upload bandwidth as KB/s. Not set means unlimited.
+                      This is the default if no per-source limit match.
+                    type: number
+                  uploadDataTransfer:
+                    description: Maximum data transfer allowed for uploads as MB.
+                      Not set means no limit.
+                    type: number
+                  virtualFolders:
+                    items:
+                      properties:
+                        description:
+                          description: Optional description.
+                          type: string
+                        exposedSubpaths:
+                          description: 'Exposes only the listed sub-paths of the folder:
+                            each entry is mounted as a virtual directory under the
+                            virtual path and serves the matching sub-path of the folder.
+                            Canonical POSIX paths with a leading slash, each exposing
+                            a distinct subtree. On group mappings the same placeholders
+                            as the subpath are supported. Mutually exclusive with
+                            `subpath`. Available in the Enterprise edition.'
+                          items:
+                            type: string
+                          type: array
+                        lastQuotaUpdate:
+                          description: Last quota update as unix timestamp in milliseconds
+                          type: number
+                        mappedPath:
+                          description: Absolute path to a local directory. This is
+                            the folder root path for local storage provider. For non-local
+                            filesystems it will store temporary files.
+                          type: string
+                        name:
+                          description: Unique folder name
+                          type: string
+                        quotaFiles:
+                          description: Maximum number of files allowed. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        quotaSize:
+                          description: Maximum size allowed as bytes. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        subpath:
+                          description: 'Re-roots the mapping: the mount at the virtual
+                            path serves the folder starting from this sub-path, which
+                            stays invisible in the virtual tree. Canonical POSIX path
+                            with a leading slash (e.g. `/tenant1`). The same folder
+                            can be mapped multiple times with distinct subpaths; every
+                            mapping of the same folder must use the same quota limits.
+                            On group mappings the `%username%` and `%role%` placeholders
+                            are supported. Mutually exclusive with `exposed_subpaths`.'
+                          type: string
+                        usedQuotaFiles:
+                          description: Used quota as number of files.
+                          type: number
+                        usedQuotaSize:
+                          description: Used quota as bytes.
+                          type: number
+                        virtualPath:
+                          description: The folder will be available on this path.
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              initProvider:
+                description: |-
+                  THIS IS A BETA FIELD. It will be honored
+                  unless the Management Policies feature flag is disabled.
+                  InitProvider holds the same fields as ForProvider, with the exception
+                  of Identifier and other resource reference fields. The fields that are
+                  in InitProvider are merged into ForProvider when the resource is created.
+                  The same fields are also added to the terraform ignore_changes hook, to
+                  avoid updating them after creation. This is useful for fields that are
+                  required on creation, but we do not desire to update them after creation,
+                  for example because of an external controller is managing them, like an
+                  autoscaler.
+                properties:
+                  additionalInfo:
+                    description: Free form text field.
+                    type: string
+                  description:
+                    description: Optional description.
+                    type: string
+                  downloadBandwidth:
+                    description: Maximum download bandwidth as KB/s. Not set means
+                      unlimited. This is the default if no per-source limit match.
+                    type: number
+                  downloadDataTransfer:
+                    description: Maximum data transfer allowed for downloads as MB.
+                      Not set means no limit.
+                    type: number
+                  email:
+                    description: User email address.
+                    type: string
+                  expirationDate:
+                    description: Account expiration date as unix timestamp in milliseconds.
+                      An expired account cannot login.
+                    type: number
+                  filesystem:
+                    properties:
+                      osconfig:
+                        properties:
+                          readBufferSize:
+                            description: Optional read buffer size, as MB, to use
+                              for downloads. Omit to disable buffering, that's fine
+                              in most use cases.
+                            type: number
+                          writeBufferSize:
+                            description: Optional write buffer size, as MB, to use
+                              for uploads. Omit to disable no buffering, that's fine
+                              in most use cases.
+                            type: number
+                        type: object
+                      provider:
+                        description: Provider. -1 = None (on users the filesystem
+                          comes from the primary group, on groups no filesystem override
+                          for the members; Available in the Enterprise edition), 0
+                          = local filesystem, 1 = S3 Compatible, 2 = Google Cloud,
+                          3 = Azure Blob, 4 = Local encrypted, 5 = SFTP, 6 = HTTP,
+                          7 = FTP
+                        type: number
+                      s3config:
+                        properties:
+                          accessKey:
+                            description: AWS Access Key ID for authentication. Leave
+                              blank when using IAM roles or instance profiles.
+                            type: string
+                          accessSecretSecretRef:
+                            description: Plain text access secret. Don't do this unless
+                              you are sure the values match (e.g because you imported
+                              an existing resource). Mutually exclusive with `access_secret_wo`.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          accessSecretWoSecretRef:
+                            description: Write-only variant of `access_secret`.11
+                              or later. Mutually exclusive with the non write-only
+                              attribute. Use the companion _wo_version attribute to
+                              trigger an update.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          accessSecretWoVersion:
+                            description: Trigger attribute for `access_secret_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          acl:
+                            description: The canned ACL to apply to uploaded objects.
+                              Not set means the bucket default.
+                            type: string
+                          bucket:
+                            description: S3 bucket name.
+                            type: string
+                          checksumAlgorithm:
+                            description: 'Checksum algorithm to compute and send with
+                              uploads (PutObject, multipart upload, CopyObject) for
+                              end-to-end integrity verification. Leave empty (default)
+                              for maximum compatibility with S3-compatible services.
+                              Supported values: "crc32", "crc32c", "crc64nvme", "sha1",
+                              "sha256". Available in the Enterprise edition.'
+                            type: string
+                          downloadConcurrency:
+                            description: How many parts are downloaded in parallel.
+                              Not set means the default (5). Ignored for partial downloads.
+                            type: number
+                          downloadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              download a single chunk. Not set means no timeout. Ignored
+                              for partial downloads.
+                            type: number
+                          downloadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              downloads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                          endpoint:
+                            description: The endpoint is generally required for S3
+                              compatible backends. For AWS S3, leave not set to use
+                              the default endpoint for the specified region.
+                            type: string
+                          forcePathStyle:
+                            description: If set path-style addressing is used, i.e.
+                              http://s3.amazonaws.com/BUCKET/KEY
+                            type: boolean
+                          keyPrefix:
+                            description: 'If specified then the SFTPGo user will be
+                              restricted to objects starting with the specified prefix.
+                              The prefix is normalized on save: a leading "/" is removed
+                              and a trailing "/" is added; a non-empty value that
+                              resolves to the storage root is rejected. Provide it
+                              already normalized (no leading "/", trailing "/") to
+                              avoid plan drift'
+                            type: string
+                          region:
+                            description: S3 region.
+                            type: string
+                          roleArn:
+                            description: Optional IAM Role ARN to assume.
+                            type: string
+                          sessionTokenSecretRef:
+                            description: Optional Session token that is a part of
+                              temporary security credentials provisioned by AWS STS.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          skipTlsVerify:
+                            description: If set the S3 client accepts any TLS certificate
+                              presented by the server and any host name in that certificate.
+                              In this mode, TLS is susceptible to man-in-the-middle
+                              attacks. This should be used only for testing.
+                            type: boolean
+                          sseCustomerKeySecretRef:
+                            description: Plain text Server-Side encryption key. Don't
+                              do this unless you are sure the values match (e.g because
+                              you imported an existing resource). Mutually exclusive
+                              with `sse_customer_key_wo`.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          sseCustomerKeyWoSecretRef:
+                            description: Write-only variant of `sse_customer_key`.11
+                              or later. Mutually exclusive with the non write-only
+                              attribute. Use the companion _wo_version attribute to
+                              trigger an update.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: Name of the secret.
+                                type: string
+                              namespace:
+                                description: Namespace of the secret.
+                                type: string
+                            required:
+                            - key
+                            - name
+                            - namespace
+                            type: object
+                          sseCustomerKeyWoVersion:
+                            description: Trigger attribute for `sse_customer_key_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          storageClass:
+                            description: The storage class to use when storing objects.
+                              Leave not set for default.
+                            type: string
+                          uploadConcurrency:
+                            description: How many parts are uploaded in parallel.
+                              Not set means the default (5).
+                            type: number
+                          uploadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              upload a single chunk. Not set means no timeout.
+                            type: number
+                          uploadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              uploads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                        type: object
+                    type: object
+                  filters:
+                    properties:
+                      accessTime:
+                        items:
+                          properties:
+                            dayOfWeek:
+                              description: Day of week, 0 Sunday, 6 Saturday
+                              type: number
+                            from:
+                              description: Start time in HH:MM format
+                              type: string
+                            to:
+                              description: End time in HH:MM format
+                              type: string
+                          type: object
+                        type: array
+                      additionalEmails:
+                        description: Additional email addresses.
+                        items:
+                          type: string
+                        type: array
+                      allowApiKeyAuth:
+                        description: If set, API Key authentication is allowed.
+                        type: boolean
+                      allowedIp:
+                        description: Only connections from these IP/Mask are allowed.
+                          IP/Mask must be in CIDR notation as defined in RFC 4632
+                          and RFC 4291 for example "192.0.2.0/24" or "2001:db8::/32"
+                        items:
+                          type: string
+                        type: array
+                      allowedSharePaths:
+                        description: 'Virtual paths within which shares are allowed.
+                          If non-empty, share paths must be at or below one of these
+                          entries. Combined with denied_share_paths via longest-prefix
+                          match: the more specific entry wins, and if the same path
+                          appears in both lists the denied entry takes precedence.
+                          The string "/" acts as a wildcard. Available in the Enterprise
+                          edition.'
+                        items:
+                          type: string
+                        type: array
+                      bandwidthLimits:
+                        items:
+                          properties:
+                            downloadBandwidth:
+                              description: Maximum download bandwidth as KB/s.
+                              type: number
+                            sources:
+                              description: Source networks in CIDR notation as defined
+                                in RFC 4632 and RFC 4291 for example "192.0.2.0/24"
+                                or "2001:db8::/32". The limit applies if the defined
+                                networks contain the client IP.
+                              items:
+                                type: string
+                              type: array
+                            uploadBandwidth:
+                              description: Maximum upload bandwidth as KB/s.
+                              type: number
+                          type: object
+                        type: array
+                      checkPasswordDisabled:
+                        description: If set, check password hook will not be executed.
+                        type: boolean
+                      custom1:
+                        description: An extra placeholder value available for use
+                          in group configurations. It can be referenced as %custom1%.
+                          Available in the Enterprise edition.
+                        type: string
+                      customPlaceholders:
+                        description: List of extra placeholders available for use
+                          in group configurations. Each placeholder can be referenced
+                          as %custom1%, %custom2%, and so on. Available in the Enterprise
+                          edition.
+                        items:
+                          type: string
+                        type: array
+                      defaultSharesExpiration:
+                        description: Default expiration for newly created shares as
+                          number of days. Not set means no default expiration.
+                        type: number
+                      deniedIp:
+                        description: Connections from these IP/Mask are not allowed.
+                          Denied rules will be evaluated before allowed ones.
+                        items:
+                          type: string
+                        type: array
+                      deniedLoginMethods:
+                        description: 'Disabled login methods. Valid values: "publickey",
+                          "password", "password-over-SSH", "keyboard-interactive",
+                          "publickey+password", "publickey+keyboard-interactive",
+                          "password+publickey", "keyboard-interactive+publickey",
+                          "TLSCertificate", "TLSCertificate+password". The "password+publickey"
+                          and "keyboard-interactive+publickey" multi-step variants
+                          are available in the Enterprise edition only.'
+                        items:
+                          type: string
+                        type: array
+                      deniedProtocols:
+                        description: 'Disabled protocols. Valid values: SSH, FTP,
+                          DAV, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      deniedSharePaths:
+                        description: Virtual paths that cannot be shared. If a path
+                          is denied, shares for that path and any sub-path are rejected.
+                          Available in the Enterprise edition.
+                        items:
+                          type: string
+                        type: array
+                      deniedShareScopes:
+                        description: 'Share scopes that users are not allowed to use.
+                          Valid values: read, write, read_write. If all scopes are
+                          denied, sharing is completely disabled. Available in the
+                          Enterprise edition.'
+                        items:
+                          type: string
+                        type: array
+                      disableFsChecks:
+                        description: Disable checks for existence and automatic creation
+                          of home directory and virtual folders after user login.
+                        type: boolean
+                      enforceSecureAlgorithms:
+                        description: If enabled, only secure algorithms are allowed.
+                          This setting is currently enforced for SSH/SFTP. Available
+                          in the Enterprise edition.
+                        type: boolean
+                      externalAuthCacheTime:
+                        description: Defines the cache time, in seconds, for users
+                          authenticated using an external auth hook. Not set means
+                          no cache.
+                        type: number
+                      externalAuthDisabled:
+                        description: If set, external auth hook will not be executed.
+                        type: boolean
+                      filePatterns:
+                        items:
+                          properties:
+                            allowedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are allowed. Allowed file patterns are evaluated
+                                before the denied ones.
+                              items:
+                                type: string
+                              type: array
+                            deniedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are not allowed.
+                              items:
+                                type: string
+                              type: array
+                            denyPolicy:
+                              description: Set to 1 to hide denied files/directories
+                                in directory listing.
+                              type: number
+                            path:
+                              description: Virtual path, if no other specific filter
+                                is defined, the filter applies for sub directories
+                                too.
+                              type: string
+                          type: object
+                        type: array
+                      ftpSecurity:
+                        description: FTP security mode. Set to 1 to require TLS for
+                          both data and control connection.
+                        type: number
+                      isAnonymous:
+                        description: If enabled the user can login with any password
+                          or no password at all. Anonymous users are supported for
+                          FTP and WebDAV protocols and permissions will be automatically
+                          set to "list" and "download" (read only)
+                        type: boolean
+                      maxSharesExpiration:
+                        description: Maximum allowed expiration, as a number of days,
+                          when a user creates or updates a share. Not set means that
+                          non-expiring shares are allowed.
+                        type: number
+                      maxUploadFileSize:
+                        description: Max size allowed for a single upload. Unset means
+                          no limit.
+                        type: number
+                      passwordExpiration:
+                        description: The password expires after the defined number
+                          of days. Not set means no expiration
+                        type: number
+                      passwordPolicy:
+                        properties:
+                          digits:
+                            description: Minimum number of digit characters required.
+                            type: number
+                          length:
+                            description: Minimum password length.
+                            type: number
+                          lowers:
+                            description: Minimum number of lowercase characters required.
+                            type: number
+                          specials:
+                            description: Minimum number of special characters required.
+                            type: number
+                          uppers:
+                            description: Minimum number of uppercase characters required.
+                            type: number
+                        type: object
+                      passwordStrength:
+                        description: 'Minimum password entropy enforced when a password
+                          is set. Not set means no per-user value: the primary group''s
+                          password_strength is used, otherwise the system-level data_provider.password_validation
+                          default. A non-zero value overrides the system default (the
+                          override may be less strict than the system default). Values
+                          in the 50-70 range are suggested for common use cases.'
+                        type: number
+                      preLoginCacheTime:
+                        description: Defines the cache time, in seconds, used by the
+                          pre-login hook gate. When greater than 0 the pre-login hook
+                          is skipped if the user's last login is within the configured
+                          window. Not set means no cache. Available in the Enterprise
+                          edition.
+                        type: number
+                      preLoginDisabled:
+                        description: If set, external pre-login hook will not be executed.
+                        type: boolean
+                      requirePasswordChange:
+                        description: If set, user must change their password from
+                          WebClient/REST API at next login.
+                        type: boolean
+                      startDirectory:
+                        description: Alternate starting directory. If not set, the
+                          default is "/". This option is supported for SFTP/SCP, FTP
+                          and HTTP (WebClient/REST API) protocols. Relative paths
+                          will use this directory as base.
+                        type: string
+                      tlsCerts:
+                        description: TLS certificates for mutual authentication. If
+                          provided will be checked before TLS username.
+                        items:
+                          type: string
+                        type: array
+                      tlsUsername:
+                        description: TLS certificate attribute to use as username.
+                          For FTP clients it must match the name provided using the
+                          "USER" command. For WebDAV, if no username is provided,
+                          the CN will be used as username. For WebDAV clients it must
+                          match the implicit or provided username.
+                        type: string
+                      twoFactorProtocols:
+                        description: 'Defines protocols that require two factor authentication.
+                          Valid values: SSH, FTP, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      userType:
+                        description: 'Hint for authentication plugins. Valid values:
+                          LDAPUser, OSUser'
+                        type: string
+                      webClient:
+                        description: 'Web Client/user REST API restrictions. Valid
+                          values: write-disabled, password-change-disabled, password-reset-disabled,
+                          publickey-change-disabled, tls-cert-change-disabled, mfa-disabled,
+                          api-key-auth-change-disabled, info-change-disabled, shares-disabled,
+                          shares-without-password-disabled, shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled.
+                          Only available in the Enterprise version: shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled'
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  gid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system GID. Default
+                      not set.
+                    type: number
+                  groups:
+                    items:
+                      properties:
+                        name:
+                          description: Group name.
+                          type: string
+                        type:
+                          description: Group type. 1 = Primary, 2 = Secondary, 3 =
+                            Membership only.
+                          type: number
+                      type: object
+                    type: array
+                  homeDir:
+                    description: 'Absolute path. Optional if the server has `users_base_dir`
+                      configured: in that case SFTPGo auto-assigns `<users_base_dir>/<username>`.'
+                    type: string
+                  maxSessions:
+                    description: Maximum concurrent sessions. Not set means no limit.
+                    type: number
+                  passwordSecretRef:
+                    description: Plain text password or hash format supported by SFTPGo.
+                      Set to empty to remove the password. Mutually exclusive with
+                      `password_wo`.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  permissions:
+                    additionalProperties:
+                      type: string
+                    description: Comma separated, per-directory, permissions.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  publicKeys:
+                    description: List of public keys in OpenSSH format.
+                    items:
+                      type: string
+                    type: array
+                  quotaFiles:
+                    description: Maximum number of files allowed. Not set means no
+                      limit.
+                    type: number
+                  quotaSize:
+                    description: Maximum size allowed as bytes. Not set means no limit.
+                    type: number
+                  role:
+                    description: Role name. With resource isolation enabled on the
+                      role, the account reaches the groups and folders carrying it
+                      and its storage is measured against the allowlist of the role.
+                    type: string
+                  status:
+                    description: 1 enabled, 0 disabled (login is not allowed).
+                    type: number
+                  totalDataTransfer:
+                    description: Maximum total data transfer as MB. Not set means
+                      unlimited. You can set a total data transfer instead of the
+                      individual values for uploads and downloads.
+                    type: number
+                  uid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system UID. Default
+                      not set.
+                    type: number
+                  uploadBandwidth:
+                    description: Maximum upload bandwidth as KB/s. Not set means unlimited.
+                      This is the default if no per-source limit match.
+                    type: number
+                  uploadDataTransfer:
+                    description: Maximum data transfer allowed for uploads as MB.
+                      Not set means no limit.
+                    type: number
+                  virtualFolders:
+                    items:
+                      properties:
+                        description:
+                          description: Optional description.
+                          type: string
+                        exposedSubpaths:
+                          description: 'Exposes only the listed sub-paths of the folder:
+                            each entry is mounted as a virtual directory under the
+                            virtual path and serves the matching sub-path of the folder.
+                            Canonical POSIX paths with a leading slash, each exposing
+                            a distinct subtree. On group mappings the same placeholders
+                            as the subpath are supported. Mutually exclusive with
+                            `subpath`. Available in the Enterprise edition.'
+                          items:
+                            type: string
+                          type: array
+                        lastQuotaUpdate:
+                          description: Last quota update as unix timestamp in milliseconds
+                          type: number
+                        mappedPath:
+                          description: Absolute path to a local directory. This is
+                            the folder root path for local storage provider. For non-local
+                            filesystems it will store temporary files.
+                          type: string
+                        name:
+                          description: Unique folder name
+                          type: string
+                        quotaFiles:
+                          description: Maximum number of files allowed. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        quotaSize:
+                          description: Maximum size allowed as bytes. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        subpath:
+                          description: 'Re-roots the mapping: the mount at the virtual
+                            path serves the folder starting from this sub-path, which
+                            stays invisible in the virtual tree. Canonical POSIX path
+                            with a leading slash (e.g. `/tenant1`). The same folder
+                            can be mapped multiple times with distinct subpaths; every
+                            mapping of the same folder must use the same quota limits.
+                            On group mappings the `%username%` and `%role%` placeholders
+                            are supported. Mutually exclusive with `exposed_subpaths`.'
+                          type: string
+                        usedQuotaFiles:
+                          description: Used quota as number of files.
+                          type: number
+                        usedQuotaSize:
+                          description: Used quota as bytes.
+                          type: number
+                        virtualPath:
+                          description: The folder will be available on this path.
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              managementPolicies:
+                default:
+                - '*'
+                description: |-
+                  THIS IS A BETA FIELD. It is on by default but can be opted out
+                  through a Crossplane feature flag.
+                  ManagementPolicies specify the array of actions Crossplane is allowed to
+                  take on the managed and external resources.
+                  This field is planned to replace the DeletionPolicy field in a future
+                  release. Currently, both could be set independently and non-default
+                  values would be honored if the feature flag is enabled. If both are
+                  custom, the DeletionPolicy field will be ignored.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                  and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
+                items:
+                  description: |-
+                    A ManagementAction represents an action that the Crossplane controllers
+                    can take on an external resource.
+                  enum:
+                  - Observe
+                  - Create
+                  - Update
+                  - Delete
+                  - LateInitialize
+                  - '*'
+                  type: string
+                type: array
+              providerConfigRef:
+                default:
+                  name: default
+                description: |-
+                  ProviderConfigReference specifies how the provider that will be used to
+                  create, observe, update, and delete this managed resource should be
+                  configured.
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  policy:
+                    description: Policies for referencing.
+                    properties:
+                      resolution:
+                        default: Required
+                        description: |-
+                          Resolution specifies whether resolution of this reference is required.
+                          The default is 'Required', which means the reconcile will fail if the
+                          reference cannot be resolved. 'Optional' means this reference will be
+                          a no-op if it cannot be resolved.
+                        enum:
+                        - Required
+                        - Optional
+                        type: string
+                      resolve:
+                        description: |-
+                          Resolve specifies when this reference should be resolved. The default
+                          is 'IfNotPresent', which will attempt to resolve the reference only when
+                          the corresponding field is not present. Use 'Always' to resolve the
+                          reference on every reconcile.
+                        enum:
+                        - Always
+                        - IfNotPresent
+                        type: string
+                    type: object
+                required:
+                - name
+                type: object
+              writeConnectionSecretToRef:
+                description: |-
+                  WriteConnectionSecretToReference specifies the namespace and name of a
+                  Secret to which any connection details for this managed resource should
+                  be written. Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
+                properties:
+                  name:
+                    description: Name of the secret.
+                    type: string
+                  namespace:
+                    description: Namespace of the secret.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+            required:
+            - forProvider
+            type: object
+            x-kubernetes-validations:
+            - message: spec.forProvider.filesystem is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.filesystem)
+                || (has(self.initProvider) && has(self.initProvider.filesystem))'
+            - message: spec.forProvider.permissions is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.permissions)
+                || (has(self.initProvider) && has(self.initProvider.permissions))'
+            - message: spec.forProvider.status is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.status)
+                || (has(self.initProvider) && has(self.initProvider.status))'
+          status:
+            description: UserStatus defines the observed state of User.
+            properties:
+              atProvider:
+                properties:
+                  additionalInfo:
+                    description: Free form text field.
+                    type: string
+                  createdAt:
+                    description: Creation time as unix timestamp in milliseconds.
+                    type: number
+                  description:
+                    description: Optional description.
+                    type: string
+                  downloadBandwidth:
+                    description: Maximum download bandwidth as KB/s. Not set means
+                      unlimited. This is the default if no per-source limit match.
+                    type: number
+                  downloadDataTransfer:
+                    description: Maximum data transfer allowed for downloads as MB.
+                      Not set means no limit.
+                    type: number
+                  email:
+                    description: User email address.
+                    type: string
+                  expirationDate:
+                    description: Account expiration date as unix timestamp in milliseconds.
+                      An expired account cannot login.
+                    type: number
+                  filesystem:
+                    properties:
+                      osconfig:
+                        properties:
+                          readBufferSize:
+                            description: Optional read buffer size, as MB, to use
+                              for downloads. Omit to disable buffering, that's fine
+                              in most use cases.
+                            type: number
+                          writeBufferSize:
+                            description: Optional write buffer size, as MB, to use
+                              for uploads. Omit to disable no buffering, that's fine
+                              in most use cases.
+                            type: number
+                        type: object
+                      provider:
+                        description: Provider. -1 = None (on users the filesystem
+                          comes from the primary group, on groups no filesystem override
+                          for the members; Available in the Enterprise edition), 0
+                          = local filesystem, 1 = S3 Compatible, 2 = Google Cloud,
+                          3 = Azure Blob, 4 = Local encrypted, 5 = SFTP, 6 = HTTP,
+                          7 = FTP
+                        type: number
+                      s3config:
+                        properties:
+                          accessKey:
+                            description: AWS Access Key ID for authentication. Leave
+                              blank when using IAM roles or instance profiles.
+                            type: string
+                          accessSecretWoVersion:
+                            description: Trigger attribute for `access_secret_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          acl:
+                            description: The canned ACL to apply to uploaded objects.
+                              Not set means the bucket default.
+                            type: string
+                          bucket:
+                            description: S3 bucket name.
+                            type: string
+                          checksumAlgorithm:
+                            description: 'Checksum algorithm to compute and send with
+                              uploads (PutObject, multipart upload, CopyObject) for
+                              end-to-end integrity verification. Leave empty (default)
+                              for maximum compatibility with S3-compatible services.
+                              Supported values: "crc32", "crc32c", "crc64nvme", "sha1",
+                              "sha256". Available in the Enterprise edition.'
+                            type: string
+                          downloadConcurrency:
+                            description: How many parts are downloaded in parallel.
+                              Not set means the default (5). Ignored for partial downloads.
+                            type: number
+                          downloadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              download a single chunk. Not set means no timeout. Ignored
+                              for partial downloads.
+                            type: number
+                          downloadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              downloads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                          endpoint:
+                            description: The endpoint is generally required for S3
+                              compatible backends. For AWS S3, leave not set to use
+                              the default endpoint for the specified region.
+                            type: string
+                          forcePathStyle:
+                            description: If set path-style addressing is used, i.e.
+                              http://s3.amazonaws.com/BUCKET/KEY
+                            type: boolean
+                          keyPrefix:
+                            description: 'If specified then the SFTPGo user will be
+                              restricted to objects starting with the specified prefix.
+                              The prefix is normalized on save: a leading "/" is removed
+                              and a trailing "/" is added; a non-empty value that
+                              resolves to the storage root is rejected. Provide it
+                              already normalized (no leading "/", trailing "/") to
+                              avoid plan drift'
+                            type: string
+                          region:
+                            description: S3 region.
+                            type: string
+                          roleArn:
+                            description: Optional IAM Role ARN to assume.
+                            type: string
+                          skipTlsVerify:
+                            description: If set the S3 client accepts any TLS certificate
+                              presented by the server and any host name in that certificate.
+                              In this mode, TLS is susceptible to man-in-the-middle
+                              attacks. This should be used only for testing.
+                            type: boolean
+                          sseCustomerKeyWoVersion:
+                            description: Trigger attribute for `sse_customer_key_wo`.
+                              Trigger attribute for the matching write-only attribute.
+                              Bump this value to force the provider to re-apply the
+                              write-only value on the next apply.
+                            type: string
+                          storageClass:
+                            description: The storage class to use when storing objects.
+                              Leave not set for default.
+                            type: string
+                          uploadConcurrency:
+                            description: How many parts are uploaded in parallel.
+                              Not set means the default (5).
+                            type: number
+                          uploadPartMaxTime:
+                            description: The maximum time allowed, in seconds, to
+                              upload a single chunk. Not set means no timeout.
+                            type: number
+                          uploadPartSize:
+                            description: The buffer size (in MB) to use for multipart
+                              uploads. If this value is not set, the default value
+                              (5MB) will be used.
+                            type: number
+                        type: object
+                    type: object
+                  filters:
+                    properties:
+                      accessTime:
+                        items:
+                          properties:
+                            dayOfWeek:
+                              description: Day of week, 0 Sunday, 6 Saturday
+                              type: number
+                            from:
+                              description: Start time in HH:MM format
+                              type: string
+                            to:
+                              description: End time in HH:MM format
+                              type: string
+                          type: object
+                        type: array
+                      additionalEmails:
+                        description: Additional email addresses.
+                        items:
+                          type: string
+                        type: array
+                      allowApiKeyAuth:
+                        description: If set, API Key authentication is allowed.
+                        type: boolean
+                      allowedIp:
+                        description: Only connections from these IP/Mask are allowed.
+                          IP/Mask must be in CIDR notation as defined in RFC 4632
+                          and RFC 4291 for example "192.0.2.0/24" or "2001:db8::/32"
+                        items:
+                          type: string
+                        type: array
+                      allowedSharePaths:
+                        description: 'Virtual paths within which shares are allowed.
+                          If non-empty, share paths must be at or below one of these
+                          entries. Combined with denied_share_paths via longest-prefix
+                          match: the more specific entry wins, and if the same path
+                          appears in both lists the denied entry takes precedence.
+                          The string "/" acts as a wildcard. Available in the Enterprise
+                          edition.'
+                        items:
+                          type: string
+                        type: array
+                      bandwidthLimits:
+                        items:
+                          properties:
+                            downloadBandwidth:
+                              description: Maximum download bandwidth as KB/s.
+                              type: number
+                            sources:
+                              description: Source networks in CIDR notation as defined
+                                in RFC 4632 and RFC 4291 for example "192.0.2.0/24"
+                                or "2001:db8::/32". The limit applies if the defined
+                                networks contain the client IP.
+                              items:
+                                type: string
+                              type: array
+                            uploadBandwidth:
+                              description: Maximum upload bandwidth as KB/s.
+                              type: number
+                          type: object
+                        type: array
+                      checkPasswordDisabled:
+                        description: If set, check password hook will not be executed.
+                        type: boolean
+                      custom1:
+                        description: An extra placeholder value available for use
+                          in group configurations. It can be referenced as %custom1%.
+                          Available in the Enterprise edition.
+                        type: string
+                      customPlaceholders:
+                        description: List of extra placeholders available for use
+                          in group configurations. Each placeholder can be referenced
+                          as %custom1%, %custom2%, and so on. Available in the Enterprise
+                          edition.
+                        items:
+                          type: string
+                        type: array
+                      defaultSharesExpiration:
+                        description: Default expiration for newly created shares as
+                          number of days. Not set means no default expiration.
+                        type: number
+                      deniedIp:
+                        description: Connections from these IP/Mask are not allowed.
+                          Denied rules will be evaluated before allowed ones.
+                        items:
+                          type: string
+                        type: array
+                      deniedLoginMethods:
+                        description: 'Disabled login methods. Valid values: "publickey",
+                          "password", "password-over-SSH", "keyboard-interactive",
+                          "publickey+password", "publickey+keyboard-interactive",
+                          "password+publickey", "keyboard-interactive+publickey",
+                          "TLSCertificate", "TLSCertificate+password". The "password+publickey"
+                          and "keyboard-interactive+publickey" multi-step variants
+                          are available in the Enterprise edition only.'
+                        items:
+                          type: string
+                        type: array
+                      deniedProtocols:
+                        description: 'Disabled protocols. Valid values: SSH, FTP,
+                          DAV, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      deniedSharePaths:
+                        description: Virtual paths that cannot be shared. If a path
+                          is denied, shares for that path and any sub-path are rejected.
+                          Available in the Enterprise edition.
+                        items:
+                          type: string
+                        type: array
+                      deniedShareScopes:
+                        description: 'Share scopes that users are not allowed to use.
+                          Valid values: read, write, read_write. If all scopes are
+                          denied, sharing is completely disabled. Available in the
+                          Enterprise edition.'
+                        items:
+                          type: string
+                        type: array
+                      disableFsChecks:
+                        description: Disable checks for existence and automatic creation
+                          of home directory and virtual folders after user login.
+                        type: boolean
+                      enforceSecureAlgorithms:
+                        description: If enabled, only secure algorithms are allowed.
+                          This setting is currently enforced for SSH/SFTP. Available
+                          in the Enterprise edition.
+                        type: boolean
+                      externalAuthCacheTime:
+                        description: Defines the cache time, in seconds, for users
+                          authenticated using an external auth hook. Not set means
+                          no cache.
+                        type: number
+                      externalAuthDisabled:
+                        description: If set, external auth hook will not be executed.
+                        type: boolean
+                      filePatterns:
+                        items:
+                          properties:
+                            allowedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are allowed. Allowed file patterns are evaluated
+                                before the denied ones.
+                              items:
+                                type: string
+                              type: array
+                            deniedPatterns:
+                              description: Files/directories with these, case insensitive,
+                                patterns are not allowed.
+                              items:
+                                type: string
+                              type: array
+                            denyPolicy:
+                              description: Set to 1 to hide denied files/directories
+                                in directory listing.
+                              type: number
+                            path:
+                              description: Virtual path, if no other specific filter
+                                is defined, the filter applies for sub directories
+                                too.
+                              type: string
+                          type: object
+                        type: array
+                      ftpSecurity:
+                        description: FTP security mode. Set to 1 to require TLS for
+                          both data and control connection.
+                        type: number
+                      isAnonymous:
+                        description: If enabled the user can login with any password
+                          or no password at all. Anonymous users are supported for
+                          FTP and WebDAV protocols and permissions will be automatically
+                          set to "list" and "download" (read only)
+                        type: boolean
+                      maxSharesExpiration:
+                        description: Maximum allowed expiration, as a number of days,
+                          when a user creates or updates a share. Not set means that
+                          non-expiring shares are allowed.
+                        type: number
+                      maxUploadFileSize:
+                        description: Max size allowed for a single upload. Unset means
+                          no limit.
+                        type: number
+                      passwordExpiration:
+                        description: The password expires after the defined number
+                          of days. Not set means no expiration
+                        type: number
+                      passwordPolicy:
+                        properties:
+                          digits:
+                            description: Minimum number of digit characters required.
+                            type: number
+                          length:
+                            description: Minimum password length.
+                            type: number
+                          lowers:
+                            description: Minimum number of lowercase characters required.
+                            type: number
+                          specials:
+                            description: Minimum number of special characters required.
+                            type: number
+                          uppers:
+                            description: Minimum number of uppercase characters required.
+                            type: number
+                        type: object
+                      passwordStrength:
+                        description: 'Minimum password entropy enforced when a password
+                          is set. Not set means no per-user value: the primary group''s
+                          password_strength is used, otherwise the system-level data_provider.password_validation
+                          default. A non-zero value overrides the system default (the
+                          override may be less strict than the system default). Values
+                          in the 50-70 range are suggested for common use cases.'
+                        type: number
+                      preLoginCacheTime:
+                        description: Defines the cache time, in seconds, used by the
+                          pre-login hook gate. When greater than 0 the pre-login hook
+                          is skipped if the user's last login is within the configured
+                          window. Not set means no cache. Available in the Enterprise
+                          edition.
+                        type: number
+                      preLoginDisabled:
+                        description: If set, external pre-login hook will not be executed.
+                        type: boolean
+                      requirePasswordChange:
+                        description: If set, user must change their password from
+                          WebClient/REST API at next login.
+                        type: boolean
+                      startDirectory:
+                        description: Alternate starting directory. If not set, the
+                          default is "/". This option is supported for SFTP/SCP, FTP
+                          and HTTP (WebClient/REST API) protocols. Relative paths
+                          will use this directory as base.
+                        type: string
+                      tlsCerts:
+                        description: TLS certificates for mutual authentication. If
+                          provided will be checked before TLS username.
+                        items:
+                          type: string
+                        type: array
+                      tlsUsername:
+                        description: TLS certificate attribute to use as username.
+                          For FTP clients it must match the name provided using the
+                          "USER" command. For WebDAV, if no username is provided,
+                          the CN will be used as username. For WebDAV clients it must
+                          match the implicit or provided username.
+                        type: string
+                      twoFactorProtocols:
+                        description: 'Defines protocols that require two factor authentication.
+                          Valid values: SSH, FTP, HTTP'
+                        items:
+                          type: string
+                        type: array
+                      userType:
+                        description: 'Hint for authentication plugins. Valid values:
+                          LDAPUser, OSUser'
+                        type: string
+                      webClient:
+                        description: 'Web Client/user REST API restrictions. Valid
+                          values: write-disabled, password-change-disabled, password-reset-disabled,
+                          publickey-change-disabled, tls-cert-change-disabled, mfa-disabled,
+                          api-key-auth-change-disabled, info-change-disabled, shares-disabled,
+                          shares-without-password-disabled, shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled.
+                          Only available in the Enterprise version: shares-require-email-auth,
+                          shares-policy-change-disabled, wopi-disabled, rest-api-disabled'
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  firstDownload:
+                    description: First download time as unix timestamp in milliseconds.
+                    type: number
+                  firstUpload:
+                    description: First upload time as unix timestamp in milliseconds.
+                    type: number
+                  gid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system GID. Default
+                      not set.
+                    type: number
+                  groups:
+                    items:
+                      properties:
+                        name:
+                          description: Group name.
+                          type: string
+                        type:
+                          description: Group type. 1 = Primary, 2 = Secondary, 3 =
+                            Membership only.
+                          type: number
+                      type: object
+                    type: array
+                  homeDir:
+                    description: 'Absolute path. Optional if the server has `users_base_dir`
+                      configured: in that case SFTPGo auto-assigns `<users_base_dir>/<username>`.'
+                    type: string
+                  id:
+                    type: string
+                  lastLogin:
+                    description: Last login as unix timestamp in milliseconds.
+                    type: number
+                  lastPasswordChange:
+                    description: Last password change as unix timestamp in milliseconds.
+                    type: number
+                  lastQuotaUpdate:
+                    description: Last quota update as unix timestamp in milliseconds.
+                    type: number
+                  maxSessions:
+                    description: Maximum concurrent sessions. Not set means no limit.
+                    type: number
+                  permissions:
+                    additionalProperties:
+                      type: string
+                    description: Comma separated, per-directory, permissions.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  publicKeys:
+                    description: List of public keys in OpenSSH format.
+                    items:
+                      type: string
+                    type: array
+                  quotaFiles:
+                    description: Maximum number of files allowed. Not set means no
+                      limit.
+                    type: number
+                  quotaSize:
+                    description: Maximum size allowed as bytes. Not set means no limit.
+                    type: number
+                  role:
+                    description: Role name. With resource isolation enabled on the
+                      role, the account reaches the groups and folders carrying it
+                      and its storage is measured against the allowlist of the role.
+                    type: string
+                  status:
+                    description: 1 enabled, 0 disabled (login is not allowed).
+                    type: number
+                  totalDataTransfer:
+                    description: Maximum total data transfer as MB. Not set means
+                      unlimited. You can set a total data transfer instead of the
+                      individual values for uploads and downloads.
+                    type: number
+                  uid:
+                    description: If SFTPGo runs as root system user then the created
+                      files and directories will be assigned to this system UID. Default
+                      not set.
+                    type: number
+                  updatedAt:
+                    description: Last update time as unix timestamp in milliseconds.
+                    type: number
+                  uploadBandwidth:
+                    description: Maximum upload bandwidth as KB/s. Not set means unlimited.
+                      This is the default if no per-source limit match.
+                    type: number
+                  uploadDataTransfer:
+                    description: Maximum data transfer allowed for uploads as MB.
+                      Not set means no limit.
+                    type: number
+                  usedDownloadDataTransfer:
+                    description: Downloaded size, as bytes, since the last reset.
+                    type: number
+                  usedQuotaFiles:
+                    description: Used quota as number of files.
+                    type: number
+                  usedQuotaSize:
+                    description: Used quota as bytes.
+                    type: number
+                  usedUploadDataTransfer:
+                    description: Uploaded size, as bytes, since the last reset.
+                    type: number
+                  virtualFolders:
+                    items:
+                      properties:
+                        description:
+                          description: Optional description.
+                          type: string
+                        exposedSubpaths:
+                          description: 'Exposes only the listed sub-paths of the folder:
+                            each entry is mounted as a virtual directory under the
+                            virtual path and serves the matching sub-path of the folder.
+                            Canonical POSIX paths with a leading slash, each exposing
+                            a distinct subtree. On group mappings the same placeholders
+                            as the subpath are supported. Mutually exclusive with
+                            `subpath`. Available in the Enterprise edition.'
+                          items:
+                            type: string
+                          type: array
+                        lastQuotaUpdate:
+                          description: Last quota update as unix timestamp in milliseconds
+                          type: number
+                        mappedPath:
+                          description: Absolute path to a local directory. This is
+                            the folder root path for local storage provider. For non-local
+                            filesystems it will store temporary files.
+                          type: string
+                        name:
+                          description: Unique folder name
+                          type: string
+                        quotaFiles:
+                          description: Maximum number of files allowed. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        quotaSize:
+                          description: Maximum size allowed as bytes. Not set means
+                            unlimited, -1 included in user quota
+                          type: number
+                        subpath:
+                          description: 'Re-roots the mapping: the mount at the virtual
+                            path serves the folder starting from this sub-path, which
+                            stays invisible in the virtual tree. Canonical POSIX path
+                            with a leading slash (e.g. `/tenant1`). The same folder
+                            can be mapped multiple times with distinct subpaths; every
+                            mapping of the same folder must use the same quota limits.
+                            On group mappings the `%username%` and `%role%` placeholders
+                            are supported. Mutually exclusive with `exposed_subpaths`.'
+                          type: string
+                        usedQuotaFiles:
+                          description: Used quota as number of files.
+                          type: number
+                        usedQuotaSize:
+                          description: Used quota as bytes.
+                          type: number
+                        virtualPath:
+                          description: The folder will be available on this path.
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              conditions:
+                description: Conditions of the resource.
+                items:
+                  description: A Condition that may apply to a resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        ObservedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      type: integer
+                    reason:
+                      description: A Reason for this condition's last transition from
+                        one status to another.
+                      type: string
+                    status:
+                      description: Status of this condition; is it currently True,
+                        False, or Unknown?
+                      type: string
+                    type:
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              lastHandledReconcileAt:
+                description: |-
+                  LastHandledReconcileAt holds the value of the most recent
+                  reconcile-requested-at annotation token that the controller has
+                  processed. Users can compare this to the annotation to determine
+                  whether a reconcile request has been handled.
+                type: string
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the latest metadata.generation
+                  which resulted in either a ready state, or stalled due to error
+                  it can not recover from without human intervention.
+                format: int64
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,39 @@
+# An SFTP account backed by its own S3 bucket. The password comes from a
+# Secret in the same namespace. Usernames are global in SFTPGo, so the external name is the
+# username and should be set explicitly.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sftp-user-password
+  namespace: default
+type: Opaque
+stringData:
+  password: change-me
+---
+apiVersion: user.sftpgo.m.zoispag.github.io/v1alpha1
+kind: User
+metadata:
+  name: example-user
+  namespace: default
+  annotations:
+    crossplane.io/external-name: example-user
+spec:
+  # Leave Delete out so removing the object never deletes the SFTP account.
+  managementPolicies: ["Create", "Observe", "Update", "LateInitialize"]
+  forProvider:
+    status: 1
+    homeDir: /tmp/example-user
+    description: Example SFTP account
+    passwordSecretRef:
+      name: sftp-user-password
+      key: password
+    permissions:
+      /: "*"
+    filesystem:
+      provider: 1
+      s3config:
+        bucket: example-sftpgo-bucket
+        region: eu-central-1
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
